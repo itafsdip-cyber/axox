@@ -2,6 +2,22 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Prerequisites
+
+- **Node.js** (v18 or later recommended) and **npm**. If you don’t have them:
+  - Install from [nodejs.org](https://nodejs.org/) (LTS), or
+  - With Homebrew: `brew install node`, or
+  - With [nvm](https://github.com/nvm-sh/nvm): `nvm install` (see `.nvmrc`).
+
+## Install and run
+
+```bash
+npm install
+npm run dev
+```
+
+Then open [http://localhost:5173](http://localhost:5173). Build: `npm run build`. Lint: `npm run lint`.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh

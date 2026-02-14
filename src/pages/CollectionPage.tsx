@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -12,67 +12,34 @@ import type { Product } from '@/types';
 
 interface CollectionPageProps {
   onNavigate: (page: string, productId?: string) => void;
+  initialCategory?: string;
 }
 
 type ViewMode = 'grid' | 'list';
 type ProductType = 'all' | 'home' | 'commercial';
 
-export function CollectionPage({ onNavigate }: CollectionPageProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [productType, setProductType] = useState<ProductType>('all');
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 20000]);
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const { addToCompare, compare, removeFromCompare, canCompare, addToCart } = useStore();
-  
-  useEffect(() => {
-    const savedCategory = sessionStorage.getItem('selectedCategory');
-    if (savedCategory) {
-      setSelectedCategories([savedCategory]);
-      sessionStorage.removeItem('selectedCategory');
-    }
-  }, []);
-  
+interface FilterContentProps {
+  productType: ProductType;
+  setProductType: (type: ProductType) => void;
+  selectedCategories: string[];
+  toggleCategory: (category: string) => void;
+  priceRange: [number, number];
+  setPriceRange: (range: [number, number]) => void;
+  onClearFilters: () => void;
+}
+
+const FilterContent = ({
+  productType,
+  setProductType,
+  selectedCategories,
+  toggleCategory,
+  priceRange,
+  setPriceRange,
+  onClearFilters,
+}: FilterContentProps) => {
   const categories = ['cardio', 'strength', 'weight', 'accessories'];
-  
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      if (productType !== 'all' && product.type !== productType) return false;
-      
-      if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
-        return false;
-      }
-      
-      if (product.price < priceRange[0] || product.price > priceRange[1]) {
-        return false;
-      }
-      
-      return true;
-    });
-  }, [productType, selectedCategories, priceRange]);
-  
-  const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
-    );
-  };
-  
-  const handleCompare = (product: Product, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (compare.find((p: Product) => p.id === product.id)) {
-      removeFromCompare(product.id);
-    } else if (canCompare(product) && compare.length < 2) {
-      addToCompare(product);
-    }
-  };
-  
-  const handleProductClick = (productId: string) => {
-    onNavigate('product', productId);
-  };
-  
-  const FilterContent = () => (
+
+  return (
     <div className="space-y-8">
       <div>
         <h4 className="text-[#F4F4F4] font-medium mb-4">Product Type</h4>
@@ -100,7 +67,7 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
           ))}
         </div>
       </div>
-      
+
       <div>
         <h4 className="text-[#F4F4F4] font-medium mb-4">Categories</h4>
         <div className="space-y-3">
@@ -122,7 +89,7 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
           ))}
         </div>
       </div>
-      
+
       <div>
         <h4 className="text-[#F4F4F4] font-medium mb-4">Price Range</h4>
         <Slider
@@ -137,21 +104,85 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
           <span>AED {priceRange[1].toLocaleString()}</span>
         </div>
       </div>
-      
+
       <Button
         variant="outline"
-        onClick={() => {
-          setProductType('all');
-          setSelectedCategories([]);
-          setPriceRange([0, 20000]);
-        }}
+        onClick={onClearFilters}
         className="w-full border-white/20 text-[#F4F4F4] hover:bg-white/5"
       >
         Clear Filters
       </Button>
     </div>
   );
-  
+};
+
+export function CollectionPage({ onNavigate, initialCategory }: CollectionPageProps) {
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [productType, setProductType] = useState<ProductType>('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(() => {
+    if (initialCategory) return [initialCategory];
+    const saved = sessionStorage.getItem('selectedCategory');
+    if (saved) {
+      sessionStorage.removeItem('selectedCategory');
+      return [saved];
+    }
+    return [];
+  });
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 20000]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const { addToCompare, compare, removeFromCompare, canCompare, addToCart } = useStore();
+
+  // Sync initialCategory prop to state (getDerivedStateFromProps pattern)
+  const [lastInitialCategory, setLastInitialCategory] = useState(initialCategory);
+  if (initialCategory !== lastInitialCategory) {
+    setLastInitialCategory(initialCategory);
+    if (initialCategory) {
+      setSelectedCategories([initialCategory]);
+    }
+  }
+
+
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      if (productType !== 'all' && product.type !== productType) return false;
+
+      if (selectedCategories.length > 0 && !selectedCategories.includes(product.category)) {
+        return false;
+      }
+
+      if (product.price < priceRange[0] || product.price > priceRange[1]) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [productType, selectedCategories, priceRange]);
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
+  };
+
+  const handleCompare = (product: Product, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (compare.find((p: Product) => p.id === product.id)) {
+      removeFromCompare(product.id);
+    } else if (canCompare(product) && compare.length < 2) {
+      addToCompare(product);
+    }
+  };
+
+  const handleProductClick = (productId: string) => {
+    onNavigate('product', productId);
+  };
+
+
+
+
   return (
     <div className="min-h-screen bg-[#0F0F10] pt-24 pb-16">
       <div className="px-6 lg:px-16 xl:px-24">
@@ -164,7 +195,7 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
               {filteredProducts.length} products available
             </p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex items-center bg-[#17181A] rounded-full p-1">
               <button
@@ -188,7 +219,7 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
                 <List className="h-4 w-4" />
               </button>
             </div>
-            
+
             <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
               <SheetTrigger asChild>
                 <Button
@@ -204,21 +235,45 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
                   <SheetTitle className="text-[#F4F4F4] font-['Sora']">Filters</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6">
-                  <FilterContent />
+                  <FilterContent
+                    productType={productType}
+                    setProductType={setProductType}
+                    selectedCategories={selectedCategories}
+                    toggleCategory={toggleCategory}
+                    priceRange={priceRange}
+                    setPriceRange={setPriceRange}
+                    onClearFilters={() => {
+                      setProductType('all');
+                      setSelectedCategories([]);
+                      setPriceRange([0, 20000]);
+                    }}
+                  />
                 </div>
               </SheetContent>
             </Sheet>
           </div>
         </div>
-        
+
         <div className="flex gap-8">
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="sticky top-24">
               <h3 className="text-[#F4F4F4] font-bold mb-6 font-['Sora']">Filters</h3>
-              <FilterContent />
+              <FilterContent
+                productType={productType}
+                setProductType={setProductType}
+                selectedCategories={selectedCategories}
+                toggleCategory={toggleCategory}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                onClearFilters={() => {
+                  setProductType('all');
+                  setSelectedCategories([]);
+                  setPriceRange([0, 20000]);
+                }}
+              />
             </div>
           </aside>
-          
+
           <div className="flex-1">
             {filteredProducts.length === 0 ? (
               <div className="text-center py-20">
@@ -251,13 +306,13 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
                         alt={product.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
-                      
+
                       {product.badge && (
                         <Badge className="absolute top-3 left-3 bg-[#D7263D] text-white text-xs">
                           {product.badge}
                         </Badge>
                       )}
-                      
+
                       <button
                         onClick={(e) => handleCompare(product, e)}
                         className={
@@ -268,7 +323,7 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
                       >
                         <ArrowRightLeft className="h-4 w-4" />
                       </button>
-                      
+
                       <div className="absolute bottom-3 left-3">
                         <span className={
                           product.type === 'commercial'
@@ -279,7 +334,7 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
                         </span>
                       </div>
                     </div>
-                    
+
                     <div className={viewMode === 'list' ? 'flex-1 flex flex-col justify-between' : ''}>
                       <div>
                         <h3 className="text-[#F4F4F4] font-medium group-hover:text-[#D7263D] transition-colors">
@@ -288,7 +343,7 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
                         <p className="text-[#9A9A9A] text-sm mt-1">
                           AED {product.price.toLocaleString()}
                         </p>
-                        
+
                         {viewMode === 'list' && (
                           <>
                             <p className="text-[#9A9A9A] text-sm mt-3 line-clamp-2">
@@ -305,7 +360,7 @@ export function CollectionPage({ onNavigate }: CollectionPageProps) {
                           </>
                         )}
                       </div>
-                      
+
                       {viewMode === 'list' && (
                         <div className="flex items-center gap-4 mt-4">
                           {product.type === 'commercial' ? (

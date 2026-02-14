@@ -6,11 +6,16 @@ import { useStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
 
 interface HeaderProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, productIdOrCategory?: string) => void;
   currentPage: string;
 }
 
-const navItems = [
+
+type NavItem =
+  | { label: string; category: string; page?: undefined }
+  | { label: string; page: string; category?: undefined };
+
+const navItems: NavItem[] = [
   { label: 'Cardio Training', category: 'cardio' },
   { label: 'Strength Training', category: 'strength' },
   { label: 'Weight Training', category: 'weight' },
@@ -21,9 +26,9 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { cart, toggleCart } = useStore();
-  
+
   const cartCount = cart.reduce((sum: number, item) => sum + item.quantity, 0);
-  
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -31,18 +36,17 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  
+
   const handleNavClick = (category: string) => {
-    onNavigate('collection');
+    onNavigate('collection', category);
     setIsMobileMenuOpen(false);
-    sessionStorage.setItem('selectedCategory', category);
   };
-  
+
   const handleLogoClick = () => {
     onNavigate('home');
     setIsMobileMenuOpen(false);
   };
-  
+
   return (
     <header
       className={cn(
@@ -57,21 +61,21 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
           {/* Logo */}
           <button
             onClick={handleLogoClick}
-            className="flex items-center group"
+            className="flex items-center group border-none outline-none focus:ring-0 ring-0 focus:outline-none"
           >
-            <img 
-              src="/logo.png" 
-              alt="AXOX Fitness" 
+            <img
+              src="/logo.png"
+              alt="AXOX Fitness"
               className="h-8 lg:h-10 w-auto object-contain"
             />
           </button>
-          
+
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => (
               <button
-                key={item.category}
-                onClick={() => handleNavClick(item.category)}
+                key={item.category || item.page}
+                onClick={() => (item.page ? onNavigate(item.page) : handleNavClick(item.category!))}
                 className="text-sm text-[#9A9A9A] hover:text-[#F4F4F4] transition-colors duration-300 relative group"
               >
                 {item.label}
@@ -79,18 +83,19 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
               </button>
             ))}
           </nav>
-          
+
           {/* Right Actions */}
           <div className="flex items-center gap-2 lg:gap-4">
             <Button
               variant="ghost"
               size="icon"
               className="text-[#9A9A9A] hover:text-[#F4F4F4] hover:bg-white/5"
-              onClick={() => onNavigate('collection')}
+              onClick={() => onNavigate('search')}
+              title="AI search — find your fit"
             >
               <Search className="h-5 w-5" />
             </Button>
-            
+
             <Button
               variant="ghost"
               size="icon"
@@ -99,7 +104,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
             >
               <User className="h-5 w-5" />
             </Button>
-            
+
             <Button
               variant="ghost"
               size="icon"
@@ -113,7 +118,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                 </span>
               )}
             </Button>
-            
+
             {/* Mobile Menu */}
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild className="lg:hidden">
@@ -135,13 +140,20 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                       Menu
                     </span>
                   </div>
-                  
+
                   <nav className="flex-1 p-6">
                     <ul className="space-y-4">
                       {navItems.map((item) => (
-                        <li key={item.category}>
+                        <li key={item.category || item.page}>
                           <button
-                            onClick={() => handleNavClick(item.category)}
+                            onClick={() => {
+                              if (item.page) {
+                                onNavigate(item.page);
+                                setIsMobileMenuOpen(false);
+                              } else {
+                                handleNavClick(item.category!);
+                              }
+                            }}
                             className="text-lg text-[#9A9A9A] hover:text-[#F4F4F4] transition-colors duration-300 w-full text-left py-2"
                           >
                             {item.label}
@@ -149,7 +161,7 @@ export function Header({ onNavigate, currentPage }: HeaderProps) {
                         </li>
                       ))}
                     </ul>
-                    
+
                     <div className="mt-8 pt-8 border-t border-white/10 space-y-4">
                       <button
                         onClick={() => {

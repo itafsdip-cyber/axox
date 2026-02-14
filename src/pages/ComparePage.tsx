@@ -199,16 +199,6 @@ export function ComparePage({ onNavigate }: ComparePageProps) {
               </div>
             </div>
           ))}
-          
-          {compare.length < 2 && (
-            <button
-              onClick={() => onNavigate('collection')}
-              className="bg-[#17181A]/50 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center p-8 hover:border-[#D7263D]/50 transition-colors"
-            >
-              <span className="text-[#9A9A9A] text-lg mb-2">Add Product</span>
-              <span className="text-[#9A9A9A] text-sm">Click to browse</span>
-            </button>
-          )}
         </div>
       </div>
     </div>

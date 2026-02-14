@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useStore } from '@/store/useStore';
 import { CreditCard, Truck, Shield, Check } from 'lucide-react';
 
@@ -14,6 +15,7 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
   const { cart, clearCart } = useStore();
   const [step, setStep] = useState<'shipping' | 'payment' | 'success'>('shipping');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [confidence, setConfidence] = useState({ delivery: false, installation: false, warranty: true });
   
   const subtotal = cart.reduce((sum: number, item) => sum + item.product.price * item.quantity, 0);
   const shipping = subtotal > 5000 ? 0 : 150;
@@ -203,6 +205,37 @@ export function CheckoutPage({ onNavigate }: CheckoutPageProps) {
                 <h2 className="text-xl font-bold text-[#F4F4F4] mb-6 font-['Sora']">
                   Payment Method
                 </h2>
+
+                {/* AI Checkout Confidence Checks — minimal, no upsell */}
+                <div className="mb-6 rounded-xl border border-white/10 bg-[#0F0F10]/50 p-4">
+                  <p className="text-[#9A9A9A] text-xs uppercase tracking-wider mb-3">Quick confirmations</p>
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={confidence.delivery}
+                        onCheckedChange={(v) => setConfidence((c) => ({ ...c, delivery: !!v }))}
+                        className="border-white/20 data-[state=checked]:bg-[#D7263D] data-[state=checked]:border-[#D7263D]"
+                      />
+                      <span className="text-[#F4F4F4] text-sm">Delivery address and constraints confirmed</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={confidence.installation}
+                        onCheckedChange={(v) => setConfidence((c) => ({ ...c, installation: !!v }))}
+                        className="border-white/20 data-[state=checked]:bg-[#D7263D] data-[state=checked]:border-[#D7263D]"
+                      />
+                      <span className="text-[#F4F4F4] text-sm">Installation date will be arranged after order</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <Checkbox
+                        checked={confidence.warranty}
+                        onCheckedChange={(v) => setConfidence((c) => ({ ...c, warranty: !!v }))}
+                        className="border-white/20 data-[state=checked]:bg-[#D7263D] data-[state=checked]:border-[#D7263D]"
+                      />
+                      <span className="text-[#F4F4F4] text-sm">Warranty as per product (included)</span>
+                    </label>
+                  </div>
+                </div>
                 
                 <div className="space-y-4 mb-6">
                   {['Credit Card', 'Cash on Delivery'].map((method) => (

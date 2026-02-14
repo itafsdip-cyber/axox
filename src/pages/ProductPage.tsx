@@ -1,23 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Truck, Shield, Wrench, CreditCard, ChevronRight, Heart, Share2 } from 'lucide-react';
+import { Check, Truck, Shield, Wrench, CreditCard, ChevronRight, Heart, Share2, ShoppingCart, HelpCircle } from 'lucide-react';
 import { getProductById } from '@/data/products';
 import { useStore } from '@/store/useStore';
 import { cn } from '@/lib/utils';
+import { useStickyProductBar } from '@/hooks/useStickyProductBar';
+import { postAIProductAdvice } from '@/lib/ai-api';
+import type { ProductAdviceResponse } from '@/types/ai';
 
 interface ProductPageProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: string, productId?: string) => void;
   productId?: string;
 }
 
 export function ProductPage({ onNavigate, productId = 'ax-9000' }: ProductPageProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useStore();
+  const { showBar, actionsRef } = useStickyProductBar();
   
   const product = getProductById(productId) || getProductById('ax-9000')!;
   const inWishlist = isInWishlist(product.id);
+  const [productAdvice, setProductAdvice] = useState<ProductAdviceResponse | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    postAIProductAdvice({ productId: product.id }).then((res) => {
+      if (!cancelled) setProductAdvice(res);
+    });
+    return () => { cancelled = true; };
+  }, [product.id]);
   
   const handleAddToCart = () => {
     addToCart(product);
@@ -41,7 +54,7 @@ export function ProductPage({ onNavigate, productId = 'ax-9000' }: ProductPagePr
   };
   
   return (
-    <div className="min-h-screen bg-[#0F0F10] pt-24 pb-16">
+    <div className="min-h-screen bg-[#0F0F10] pt-24 pb-24 lg:pb-16">
       <div className="px-6 lg:px-16 xl:px-24">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-[#9A9A9A] mb-8">
@@ -107,18 +120,19 @@ export function ProductPage({ onNavigate, productId = 'ax-9000' }: ProductPagePr
               )}
             </div>
             
-            {/* Price */}
-            <p className="text-3xl font-bold text-[#F4F4F4] mb-6">
-              AED {product.price.toLocaleString()}
-            </p>
-            
-            {/* Description */}
-            <p className="text-[#9A9A9A] mb-8">
-              {product.description}
-            </p>
-            
-            {/* Actions */}
-            <div className="flex flex-wrap gap-4 mb-8">
+            {/* Price + Actions (observed for sticky bar) */}
+            <div ref={actionsRef}>
+              <p className="text-3xl font-bold text-[#F4F4F4] mb-6">
+                AED {product.price.toLocaleString()}
+              </p>
+              
+              {/* Description */}
+              <p className="text-[#9A9A9A] mb-8">
+                {product.description}
+              </p>
+              
+              {/* Actions */}
+              <div className="flex flex-wrap gap-4 mb-8">
               {product.type === 'commercial' ? (
                 <>
                   <Button
@@ -173,6 +187,103 @@ export function ProductPage({ onNavigate, productId = 'ax-9000' }: ProductPagePr
                 <Share2 className="h-5 w-5" />
               </Button>
             </div>
+            </div>
+
+            {/* AI Purchase Assistant — decision validation (calm, no chatbot) */}
+            {productAdvice && (
+              <div className="mb-8 rounded-2xl border border-white/10 bg-[#17181A]/80 overflow-hidden">
+                <div className="p-4 border-b border-white/10 flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5 text-[#D7263D]" />
+                  <h3 className="text-[#F4F4F4] font-semibold font-['Sora']">Is this right for you?</h3>
+                </div>
+                <div className="p-6 space-y-6">
+                  {productAdvice.bestFor && productAdvice.bestFor.length > 0 && (
+                    <div>
+                      <p className="text-[#9A9A9A] text-xs uppercase tracking-wider mb-2">Best for</p>
+                      <ul className="flex flex-wrap gap-2">
+                        {productAdvice.bestFor.map((item, i) => (
+                          <li key={i} className="inline-flex items-center gap-1.5 text-sm text-[#F4F4F4] bg-[#0F0F10] px-3 py-1.5 rounded-full">
+                            <Check className="h-3.5 w-3.5 text-[#D7263D]" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {productAdvice.notIdealFor && productAdvice.notIdealFor.length > 0 && (
+                    <div>
+                      <p className="text-[#9A9A9A] text-xs uppercase tracking-wider mb-2">Not ideal for</p>
+                      <ul className="flex flex-wrap gap-2">
+                        {productAdvice.notIdealFor.map((item, i) => (
+                          <li key={i} className="text-sm text-[#9A9A9A]">{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {productAdvice.fitNotes && productAdvice.fitNotes.length > 0 && (
+                    <div>
+                      <p className="text-[#9A9A9A] text-xs uppercase tracking-wider mb-2">Fit check</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {productAdvice.fitNotes.map((note, i) => (
+                          <div key={i} className={cn('rounded-xl px-3 py-2 text-sm', note.ok ? 'bg-[#0F0F10] text-[#F4F4F4]' : 'bg-[#D7263D]/10 text-[#9A9A9A]')}>
+                            <span className="text-[#9A9A9A] block text-xs">{note.label}</span>
+                            {note.value}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <span className="text-[#9A9A9A]">Warranty</span>
+                    <span className="text-[#F4F4F4]">{product.specs.warranty ?? '—'}</span>
+                    <span className="text-[#9A9A9A]">Installation</span>
+                    <span className="text-[#F4F4F4]">Included</span>
+                  </div>
+                  {productAdvice.alternatives && productAdvice.alternatives.length > 0 && (
+                    <div>
+                      <p className="text-[#9A9A9A] text-xs uppercase tracking-wider mb-2">Alternatives</p>
+                      <div className="flex flex-wrap gap-2">
+                        {productAdvice.alternatives.slice(0, 3).map((alt) => {
+                          const p = getProductById(alt.productId);
+                          return p ? (
+                            <Button
+                              key={alt.productId}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onNavigate('product', alt.productId)}
+                              className="border-white/20 text-[#F4F4F4] hover:bg-white/5 rounded-full"
+                            >
+                              {p.name}
+                            </Button>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {productAdvice.addOns && productAdvice.addOns.length > 0 && (
+                    <div>
+                      <p className="text-[#9A9A9A] text-xs uppercase tracking-wider mb-2">Often bought together</p>
+                      <div className="flex flex-wrap gap-2">
+                        {productAdvice.addOns.slice(0, 3).map((add) => {
+                          const p = getProductById(add.productId);
+                          return p ? (
+                            <Button
+                              key={add.productId}
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onNavigate('product', add.productId)}
+                              className="text-[#9A9A9A] hover:text-[#F4F4F4]"
+                            >
+                              {p.name}
+                            </Button>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             
             {/* Trust Badges */}
             <div className="grid grid-cols-2 gap-4 mb-8">
@@ -226,14 +337,14 @@ export function ProductPage({ onNavigate, productId = 'ax-9000' }: ProductPagePr
               <TabsContent value="specifications" className="mt-0">
                 <div className="bg-[#17181A] rounded-2xl p-6">
                   <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(product.specs).map(([key, value]) => (
-                      value && (
+                    {Object.entries(product.specs)
+                      .filter(([, value]) => value)
+                      .map(([key, value]) => (
                         <div key={key} className="border-b border-white/10 pb-3">
                           <p className="text-[#9A9A9A] text-sm capitalize">{key}</p>
                           <p className="text-[#F4F4F4] font-medium">{value}</p>
                         </div>
-                      )
-                    ))}
+                      ))}
                   </div>
                 </div>
               </TabsContent>
@@ -267,6 +378,50 @@ export function ProductPage({ onNavigate, productId = 'ax-9000' }: ProductPagePr
           </div>
         </div>
       </div>
+
+      {/* Sticky Add to Cart bar (mobile only) */}
+      {showBar && (
+        <div
+          className={cn(
+            'fixed bottom-0 left-0 right-0 z-40 lg:hidden',
+            'bg-[#0F0F10]/98 backdrop-blur-md border-t border-white/10',
+            'px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]'
+          )}
+        >
+          <div className="flex items-center justify-between gap-4 max-w-lg mx-auto">
+            <div className="min-w-0 flex-1">
+              <p className="text-[#F4F4F4] font-medium truncate text-sm">{product.name}</p>
+              <p className="text-[#D7263D] font-bold text-lg">AED {product.price.toLocaleString()}</p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              {product.type === 'commercial' ? (
+                <Button
+                  onClick={handleRequestQuote}
+                  className="bg-[#D7263D] hover:bg-[#b91d32] text-white rounded-full px-5 h-11 text-sm"
+                >
+                  Request Quote
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    onClick={handleAddToCart}
+                    variant="outline"
+                    className="border-white/20 text-[#F4F4F4] hover:bg-white/5 rounded-full h-11 px-4"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={handleBuyNow}
+                    className="bg-[#D7263D] hover:bg-[#b91d32] text-white rounded-full h-11 px-5 text-sm"
+                  >
+                    Buy Now
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

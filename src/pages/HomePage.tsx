@@ -1,16 +1,10 @@
 import { Button } from '@/components/ui/button';
-import { ArrowRight, ChevronDown, Truck, Wrench, Shield, MapPin } from 'lucide-react';
+import { Truck, Wrench, Shield, MapPin, Quote } from 'lucide-react';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 interface HomePageProps {
   onNavigate: (page: string) => void;
 }
-
-const categories = [
-  { name: 'Cardio', image: '/category_cardio.jpg', cta: 'Shop Cardio' },
-  { name: 'Strength', image: '/category_strength.jpg', cta: 'Shop Strength' },
-  { name: 'Weight', image: '/category_weight.jpg', cta: 'Shop Weight' },
-  { name: 'Accessories', image: '/category_accessories.jpg', cta: 'Shop Accessories' },
-];
 
 const trustFeatures = [
   { icon: Wrench, title: 'Installation', description: 'Professional setup included' },
@@ -19,149 +13,148 @@ const trustFeatures = [
   { icon: MapPin, title: 'Support', description: 'Local service team' },
 ];
 
+const trustedBy = [
+  'Gyms & Studios',
+  'Hotels & Resorts',
+  'Corporate Wellness',
+  'Sports Academies',
+];
+
+const testimonial = {
+  quote: 'AXOX equipment has transformed our facility. The build quality is unmatched, and our members notice the difference from day one.',
+  name: 'Omar Al-Maktoum',
+  role: 'Head of Fitness, Premium Dubai Gym',
+};
+
 export function HomePage({ onNavigate }: HomePageProps) {
-  const handleCategoryClick = (category: string) => {
-    sessionStorage.setItem('selectedCategory', category.toLowerCase());
-    onNavigate('collection');
-  };
-  
+  const featuredRef = useScrollReveal(0.08);
+  const trustedRef = useScrollReveal(0.08);
+
   return (
     <div className="min-h-screen bg-[#0F0F10]">
       {/* Hero Section */}
-      <section className="relative h-screen w-full overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 hero-bg-animate">
+      {/* Hero Section */}
+      <section className="relative min-h-screen w-full overflow-hidden flex flex-col items-center justify-center text-center pt-32 pb-20">
+        {/* Background Image with Gradient Overlay */}
+        <div className="absolute inset-0 z-0">
           <img
-            src="/hero_gym.jpg"
-            alt="Premium gym interior"
-            className="w-full h-full object-cover"
+            src="/hero_premium_treadmill.png"
+            alt="Axox Premium Treadmill"
+            className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 gradient-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F10] via-black/40 to-black/60" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#0F0F10_100%)] opacity-80" />
         </div>
-        
+
         {/* Content */}
-        <div className="relative z-10 h-full flex flex-col justify-center px-6 lg:px-16 xl:px-24">
-          <div className="max-w-4xl">
-            <p className="hero-animate-1 text-[#D7263D] text-sm uppercase tracking-[0.2em] mb-4">
-              Axox Fitness
-            </p>
-            <h1 className="hero-animate-2 text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-[#F4F4F4] leading-[1.05] mb-6 font-['Sora']">
-              Engineered Without<br />
-              Compromise.
-            </h1>
-            <p className="hero-animate-3 text-[#9A9A9A] text-lg md:text-xl max-w-xl mb-8">
-              Premium fitness equipment designed for those who refuse to settle. Built for performance, crafted for longevity.
-            </p>
-            
-            <div className="hero-animate-4 flex flex-wrap gap-4">
-              <Button
-                onClick={() => onNavigate('collection')}
-                className="bg-[#D7263D] hover:bg-[#b91d32] text-white rounded-full px-8 h-12 text-sm font-medium group"
-              >
-                Explore Collection
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => onNavigate('quote')}
-                className="border-white/30 text-[#F4F4F4] hover:bg-white/5 hover:border-white/50 rounded-full px-8 h-12 text-sm font-medium"
-              >
-                View Commercial Range
-              </Button>
-            </div>
-          </div>
-        </div>
-        
-        {/* Scroll Hint */}
-        <div className="scroll-hint-animate absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-          <span className="text-[#9A9A9A] text-xs uppercase tracking-widest">Scroll</span>
-          <ChevronDown className="h-5 w-5 text-[#9A9A9A] animate-float" />
-        </div>
-      </section>
-      
-      {/* Philosophy Section */}
-      <section className="py-20 lg:py-32 px-6 lg:px-16 xl:px-24">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-          <div>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#F4F4F4] mb-8 leading-tight font-['Sora']">
-              Built for those who refuse to settle.
-            </h2>
-            <div className="space-y-6 text-[#9A9A9A] leading-relaxed">
-              <p>
-                Axox designs equipment that performs under pressure—at home, in the gym, or under stadium lights. Every frame, weld, and finish is chosen for durability and precision.
-              </p>
-              <p>
-                We don't chase trends. We build tools that outlast them. Our engineering philosophy is simple: eliminate the unnecessary, perfect what remains.
-              </p>
-              <p>
-                From the UAE to the world, Axox represents the pinnacle of fitness equipment craftsmanship.
-              </p>
-            </div>
-            <Button
-              variant="link"
-              onClick={() => onNavigate('collection')}
-              className="text-[#D7263D] hover:text-[#b91d32] p-0 h-auto mt-8 text-sm uppercase tracking-widest group"
-            >
-              Read our story
-              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-            </Button>
-          </div>
-          
-          <div className="relative">
-            <div className="aspect-[3/4] rounded-2xl overflow-hidden">
-              <img
-                src="/philosophy_runner.jpg"
-                alt="Athlete in motion"
-                className="w-full h-full object-cover"
+        <div className="relative z-10 px-6 lg:px-16 xl:px-24 max-w-6xl mx-auto flex flex-col items-center">
+          <p className="hero-animate-1 text-[#D7263D] text-xs font-bold tracking-[0.3em] uppercase mb-6">
+            Axox Fitness
+          </p>
+
+          <h1 className="hero-animate-2 text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold text-[#F4F4F4] mb-10 tracking-tight leading-tight md:leading-none">
+            Engineered Without Compromise.
+          </h1>
+
+          {/* Search Bar - Floating Interaction */}
+          <div className="hero-animate-3 w-full max-w-2xl mb-10 relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#D7263D] to-[#FF4D4D] rounded-full opacity-20 group-hover:opacity-40 blur transition duration-500" />
+            <div className="relative flex items-center bg-[#0F0F10]/90 backdrop-blur-md border border-white/10 rounded-full p-2 pr-2 shadow-2xl transition-all duration-300 group-hover:border-[#D7263D]/50 group-hover:scale-[1.02]">
+              <div className="pl-4 md:pl-6 pr-2 md:pr-4 text-[#D7263D]">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </div>
+
+              {/* Mobile Input */}
+              <input
+                type="text"
+                placeholder="Search products..."
+                className="flex-1 bg-transparent border-none text-[#F4F4F4] placeholder:text-[#9A9A9A]/60 focus:outline-none text-sm py-3 md:hidden"
+                onClick={() => onNavigate('search')}
+                readOnly
               />
+
+              {/* Desktop Input */}
+              <input
+                type="text"
+                placeholder="What are you looking for? (e.g. 'Treadmill for marathon training')"
+                className="flex-1 bg-transparent border-none text-[#F4F4F4] placeholder:text-[#9A9A9A]/60 focus:outline-none text-base py-3 hidden md:block"
+                onClick={() => onNavigate('search')}
+                readOnly
+              />
+
+              <button
+                onClick={() => onNavigate('search')}
+                className="bg-[#D7263D] hover:bg-[#b91d32] text-white rounded-full p-2 md:p-3 transition-colors duration-300"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+              </button>
             </div>
-            <div className="absolute -bottom-6 -left-6 w-32 h-32 border border-[#D7263D]/30 rounded-2xl hidden lg:block" />
           </div>
-        </div>
-      </section>
-      
-      {/* Category Showcase */}
-      <section className="py-20 lg:py-32 px-6 lg:px-16 xl:px-24">
-        <div className="text-center mb-12 lg:mb-16">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#F4F4F4] mb-4 font-['Sora']">
-            Train your way.
-          </h2>
-          <p className="text-[#9A9A9A] max-w-2xl mx-auto">
-            Cardio, strength, weight training, and accessories—built for performance.
+
+          <p className="hero-animate-4 text-[#9A9A9A] text-base md:text-xl max-w-2xl leading-relaxed font-light">
+            Premium fitness equipment designed for those who refuse to settle. <br className="hidden md:block" />Built for performance, crafted for longevity.
           </p>
         </div>
-        
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          {categories.map((category) => (
-            <button
-              key={category.name}
-              onClick={() => handleCategoryClick(category.name)}
-              className="group relative aspect-[3/4] rounded-2xl overflow-hidden"
-            >
-              <img
-                src={category.image}
-                alt={category.name}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F10]/90 via-[#0F0F10]/40 to-transparent" />
-              
-              <div className="absolute inset-0 flex flex-col justify-end p-4 lg:p-6">
-                <h3 className="text-xl lg:text-2xl font-bold text-[#F4F4F4] mb-2 font-['Sora']">
-                  {category.name}
-                </h3>
-                <span className="text-[#D7263D] text-sm opacity-0 translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
-                  {category.cta}
-                </span>
-              </div>
-              
-              <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#D7263D]/50 rounded-2xl transition-colors duration-300" />
-            </button>
-          ))}
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50 hero-animate-4">
+          <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-white/50 to-transparent" />
+          <span className="text-[10px] tracking-[0.2em] uppercase text-white/50">Scroll</span>
         </div>
       </section>
-      
+
+      {/* Our Story / Philosophy Section */}
+      <section className="relative z-10 py-20 px-6 lg:px-16 xl:px-24">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-sm font-bold tracking-[0.2em] text-[#D7263D] uppercase mb-6">Our Philosophy</h2>
+          <p className="text-2xl md:text-3xl lg:text-4xl text-[#F4F4F4] leading-relaxed font-['Sora'] font-light">
+            "Axox isn't just equipment; it's a commitment to the discipline of self-improvement. We design for the 1% who refuse to compromise on performance, biomechanics, or aesthetics."
+          </p>
+          <div className="mt-8 flex justify-center">
+            <div className="h-1 w-20 bg-[#D7263D]/50 rounded-full" />
+          </div>
+        </div>
+      </section>
+
+      {/* Major Clients Carousel */}
+      <section className="py-20 bg-[#0F0F10] border-y border-white/5 overflow-hidden">
+        <p className="text-center text-[#9A9A9A] text-xs font-bold tracking-[0.3em] uppercase mb-16">
+          Powering World-Class Facilities
+        </p>
+
+        <div className="flex overflow-hidden select-none mask-gradient-fade">
+          <div className="flex shrink-0 animate-marquee items-center justify-around gap-12 sm:gap-24 min-w-full px-6">
+            {['Emirates', 'Etihad', 'Emaar', 'Danube', 'Nakheel', 'Jumeirah', 'Damac'].map((client, i) => (
+              <span key={i} className="text-3xl md:text-5xl font-bold text-[#F4F4F4]/20 hover:text-[#D7263D] transition-colors duration-500 font-['Sora'] uppercase tracking-tight cursor-default">
+                {client}
+              </span>
+            ))}
+          </div>
+          <div aria-hidden="true" className="flex shrink-0 animate-marquee items-center justify-around gap-12 sm:gap-24 min-w-full px-6">
+            {['Emirates', 'Etihad', 'Emaar', 'Danube', 'Nakheel', 'Jumeirah', 'Damac'].map((client, i) => (
+              <span key={i} className="text-3xl md:text-5xl font-bold text-[#F4F4F4]/20 hover:text-[#D7263D] transition-colors duration-500 font-['Sora'] uppercase tracking-tight cursor-default">
+                {client}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes marquee {
+            from { transform: translateX(0); }
+            to { transform: translateX(-100%); }
+          }
+          .animate-marquee {
+            animation: marquee 30s linear infinite;
+          }
+          .mask-gradient-fade {
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+          }
+        `}</style>
+      </section>
+
       {/* Featured Product Section */}
-      <section className="py-20 lg:py-32 relative overflow-hidden">
+      <section ref={featuredRef} className="reveal-on-scroll py-20 lg:py-32 relative overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="/product_treadmill.jpg"
@@ -170,7 +163,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-[#0F0F10] via-[#0F0F10]/80 to-transparent" />
         </div>
-        
+
         <div className="relative z-10 px-6 lg:px-16 xl:px-24">
           <div className="max-w-xl">
             <span className="inline-block bg-[#D7263D] text-white text-xs uppercase tracking-widest px-3 py-1 rounded-full mb-6">
@@ -182,7 +175,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <p className="text-[#9A9A9A] text-lg mb-6">
               Commercial-grade motor, responsive deck, and a console that keeps pace with your data.
             </p>
-            
+
             <div className="grid grid-cols-2 gap-4 mb-8">
               {[
                 { label: '3.5 HP Motor', value: 'Commercial Grade' },
@@ -196,13 +189,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </div>
               ))}
             </div>
-            
+
             <div className="flex items-center gap-6 mb-8">
               <span className="text-3xl font-bold text-[#F4F4F4]">
                 AED 12,999
               </span>
             </div>
-            
+
             <div className="flex flex-wrap gap-4">
               <Button
                 onClick={() => onNavigate('product')}
@@ -221,7 +214,36 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
       </section>
-      
+
+      {/* Trusted By + Testimonial */}
+      <section ref={trustedRef} className="reveal-on-scroll py-20 lg:py-32 px-6 lg:px-16 xl:px-24 border-t border-white/5">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-center text-[#9A9A9A] text-sm uppercase tracking-[0.2em] mb-8">
+            Trusted by leading facilities
+          </p>
+          <div className="flex flex-wrap justify-center gap-8 lg:gap-12 mb-16">
+            {trustedBy.map((label) => (
+              <span
+                key={label}
+                className="text-[#F4F4F4]/70 font-medium text-sm lg:text-base"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+          <div className="bg-[#17181A] rounded-2xl p-8 lg:p-12 border border-white/5">
+            <Quote className="h-10 w-10 text-[#D7263D]/50 mb-6" />
+            <blockquote className="text-[#F4F4F4] text-lg lg:text-xl leading-relaxed mb-6 font-['Sora']">
+              "{testimonial.quote}"
+            </blockquote>
+            <div>
+              <p className="text-[#F4F4F4] font-medium">{testimonial.name}</p>
+              <p className="text-[#9A9A9A] text-sm">{testimonial.role}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Trust Section */}
       <section className="py-20 lg:py-32 px-6 lg:px-16 xl:px-24 border-t border-white/5">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 max-w-6xl mx-auto">
@@ -234,6 +256,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
           ))}
         </div>
       </section>
+
+
     </div>
   );
 }
